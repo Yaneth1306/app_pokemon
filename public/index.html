@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplicación de Clima</title>
+    <link rel="shortcut icon" href="img/png-logo.png" />
+    <link rel="stylesheet" href="estilo.css">
+</head>
+
+<body>
+    <header>
+        <img class="logo_pokemon" src="img/logo.png" alt="" onclick="mostrar()"/>
+    </header>
+    <nav>
+        <div class="menu">
+            <div class="menu-item" onclick="mostrar('buscador_pokemon')">Pokemon</div>
+            <div class="menu-item" onclick="mostrar('buscador_bayas')">Bayas</div>
+        </div>
+    </nav>
+    <section class="buscador_pokemon" id="buscador_pokemon">
+        <form id="formPokemon" onsubmit="buscarPokemon(); return false;">
+            <input type="text" id="pokemonInput" placeholder="Ingrese el nombre del Pokémon">
+            <button type="submit" class="buscar">Buscar</button>
+        </form>
+    </section>
+
+    <section class="buscador_bayas" id="buscador_bayas">
+        <form id="formBayas" onsubmit="buscarBayas(); return false;">
+            <input type="text" id="bayaInput" placeholder="Ingrese el nombre de la baya">
+            <button type="submit" class="buscar">Buscar</button>
+        </form>
+    </section>
+    <section id="contenedor_pokemon" class="contenedor_pokemon" style="display: none;">
+        <!--  resultados de la búsqueda de Pokémon -->
+        
+        
+    </section>
+
+    <section id="contenedor_bayas" class="contenedor_bayas" style="display: none;">
+        <!-- resultados de la búsqueda de bayas -->
+
+    </section>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.4/axios.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        function mostrar(id) {
+            // Oculta todas las secciones
+            document.querySelectorAll('section').forEach(seccion => {
+                seccion.style.display = 'none';
+            });
+
+            // Muestra la sección correspondiente al id pasado como parámetro
+            document.getElementById(id).style.display = 'block';
+        }
+
+        async function buscarPokemon() {
+            const pokemonName = document.getElementById('pokemonInput').value;
+            try {
+                const response = await axios.get(`/pokemon/${pokemonName}`);
+                const abilities = response.data.abilities;
+                const abilityNames = abilities.map(ability => ability.ability.name);
+                const gifUrl = response.data.sprites.versions['generation-v']['black-white'].animated.front_default;
+
+
+                document.getElementById('contenedor_pokemon').innerHTML = `
+                    <h2>Detalles del Pokémon</h2>
+                    <p>id Pokémon: ${response.data.id}</p>
+                    <p>Nombre: ${response.data.name}</p>
+                    <p>Habilidades: ${abilityNames}</p>
+                    <p>Peso: ${response.data.weight} hectogramos</p>
+                    <p>Altura: ${response.data.height} decimetros </p>
+                    <img src="${gifUrl}" alt="${response.data.name}" heigth=200px; width=200px; />
+                    
+                    
+                `;
+                document.getElementById('contenedor_pokemon').style.display = 'block';
+                document.getElementById('contenedor_bayas').style.display = 'none';
+
+                
+            } catch (error) {
+                console.error('Error al buscar Pokémon:', error);
+                alert('No se encontro al Pokémon');
+            }
+        }
+
+
+        async function buscarBayas() {
+            const bayaName = document.getElementById('bayaInput').value;
+            try {
+                const response = await axios.get(`/baya/${bayaName}`);
+                const itemUrl = response.data.item.url; // Obtener la URL del item
+                const itemData = await axios.get(itemUrl); // Usar la URL para obtener la descripción
+                document.getElementById('contenedor_bayas').innerHTML = `
+                <h2>Detalles de la baya</h2>
+                <p>Id de la baya: ${response.data.id}</p>
+                <p>Nombre: ${response.data.name}</p>
+                <p>Tamaño: ${response.data.size}</p>
+                <p>Firmeza: ${response.data.firmness.name}</p>
+                <p>Sabor: ${response.data.flavors[0].flavor.name}</p>             
+                <p>Secado: ${response.data.soil_dryness}</p>
+                <p>Crecimiento: ${response.data.growth_time} horas</p>
+                <p> <img src="${itemData.data.sprites.default}" alt="${response.data.nombreBaya}"  heigth=200px; width=200px; style=" text-align: center; "</p>
+                
+            `;
+                document.getElementById('contenedor_bayas').style.display = 'block';
+                document.getElementById('contenedor_pokemon').style.display = 'none';
+
+            } catch (error) {
+                console.error('Error al buscar la baya:', error);
+                alert('No se encontro la baya');
+            }
+        }
+    </script>
+</body>
+
+</html>
